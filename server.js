@@ -1,29 +1,39 @@
 import express from "express";
 import fetch from "node-fetch";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/chat", async (req, res) => {
-  const userMsg = req.body.message;
+  try {
+    const userMsg = req.body.message;
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + process.env.API_KEY,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "openrouter/auto",
-      messages: [
-        { role: "system", content: "Sei un assistente semplice e diretto." },
-        { role: "user", content: userMsg }
-      ]
-    })
-  });
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + process.env.API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "openrouter/auto",
+        messages: [
+          { role: "system", content: "Sei un assistente semplice e diretto." },
+          { role: "user", content: userMsg }
+        ]
+      })
+    });
 
-  const data = await response.json();
-  res.json({ reply: data.choices?.[0]?.message?.content || "Errore" });
+    const data = await response.json();
+
+    res.json({
+      reply: data.choices?.[0]?.message?.content || "Errore"
+    });
+
+  } catch (err) {
+    res.json({ reply: "Errore server" });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
